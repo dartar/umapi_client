@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+CLI for UMAPI client.
+"""
+
+from umapi_client import config, logging
+from umapi_client.client import UMAPIClient
+
+import json
+import argparse
+from sys import exit
+
+__author__ = "ryan faulkner"
+__email__ = 'rfaulkner@wikimedia.org'
+__date__ = "2013-03-27"
+__license__ = "GPL (version 2 or later)"
+
+
+def parseargs():
+    """
+        Parse command line arguments. Returns *args*, the list of arguments
+        left over after processing.
+    """
+
+    parser = argparse.ArgumentParser(
+        description="Requests a url from the Wimedia user metrics API.",
+        epilog="",
+        conflict_handler="resolve",
+        usage="umapi_client [url]"
+    )
+
+    parser.allow_interspersed_args = False
+
+    # Global options.
+    parser.add_argument("url")
+    args = parser.parse_args()
+    return args
+
+
+def main():
+
+    # e.g. url = 'cohorts/ryan_test_2/bytes_added'
+    args = parseargs()
+
+    # Initialize a requester object
+    umapi_req = UMAPIClient(config.UMAPI_USER,
+                            config.UMAPI_PASS)
+
+    # Make request
+    try:
+        response = umapi_req.get_request(config.URL_ROOT + args.url)
+    except Exception as e:
+        logging.error(__name__ + ' :: Bad response - {0}.'.format(e.message))
+        return
+
+    print str(json.loads(response))
+
+
+def cli():
+    exit(main())
+
+
+if __name__ == '__main__':
+    cli()
