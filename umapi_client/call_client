@@ -73,12 +73,17 @@ def main():
     args = parseargs()
 
     # Initialize a requester object
+    logging.debug(__name__ + ' :: Attempting to create cookie jar, '
+                             'logging in ..')
     umapi_req = UMAPIClient(config.UMAPI_USER,
                             config.UMAPI_PASS)
 
     # Validate the url
 
     # Make request
+    logging.debug(__name__ + ' :: Login successful. Making request: {0}'.
+        format(config.URL_ROOT + str(args.url)))
+
     try:
         response = umapi_req.get_request(config.URL_ROOT + str(args.url))
     except Exception as e:
@@ -91,6 +96,10 @@ def main():
     # Handle response
     if args.save_file:
         filename = format_filename(args)
+
+        logging.debug(__name__ + ' :: Writing response to file: {0}'.
+            format(filename))
+
         with open(filename, 'wb') as f:
             f.write(response_str)
     else:
