@@ -1,5 +1,6 @@
 *.py[cod]
 MANIFEST
+config.py
 
 # C extensions
 *.so
@@ -36,3 +37,6 @@ nosetests.xml
 .pydevproject
 .DS_Store
 .idea
+*.cookies
+
+
