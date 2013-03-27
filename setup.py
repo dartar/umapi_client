@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from distutils.core import setup
+from setuptools import setup
 
 with open('README.md') as file:
     long_description = file.read()
@@ -16,13 +16,9 @@ setup(
     url='http://www.github.com/rfaulkner/umapi_client',
     author="Wikimedia Foundation",
     author_email="e3-team@lists.wikimedia.org",
+    install_requires=[],
     packages=['umapi_client',
 	      ],
-    package_data={
-        'user_metrics.api': [
-            'template/*',
-        ],
-        },
     classifiers=[
         'Development Status :: 1 - Planning',
         'Intended Audience :: Science/Research',
