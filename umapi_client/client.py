@@ -9,7 +9,6 @@ __license__ = "GPL (version 2 or later)"
 
 from umapi_client import config, logging
 
-from sys import exit
 import json
 import cookielib
 import os
@@ -17,7 +16,7 @@ import urllib
 import urllib2
 
 
-class UMAPIRequester(object):
+class UMAPIClient(object):
     """
         Class wraps the login, cookie setting, and request functionality.
     """
@@ -62,30 +61,3 @@ class UMAPIRequester(object):
     def get_request(self, url):
         response = self.opener.open(url)
         return json.dumps(''.join(response.readlines()))
-
-
-def main():
-    url = 'cohorts/ryan_test_2/bytes_added'
-
-    # Initialize a requester object
-    umapi_req = UMAPIRequester(config.UMAPI_USER,
-                               config.UMAPI_PASS)
-
-    # Make request
-    try:
-        response = umapi_req.get_request(config.URL_ROOT + url)
-    except Exception as e:
-        logging.error(__name__ + ' :: Bad response - {0}.'.format(e.message))
-        return
-
-    print str(json.loads(response))
-
-
-def cli():
-    exit(main())
-
-
-if __name__ == '__main__':
-    cli()
-
-
