@@ -8,8 +8,8 @@ See https://github.com/wikimedia/user_metrics for UMAPI implementation.
 Usage
 -----
 
-Set the ``UMAPI_USER`` and ``UMAPI_PASS`` in ``umapi_clinet/config.py``
-(copied from ``umapi_clinet/config.py.settings``).  Ensure that
+Set the ``UMAPI_USER`` and ``UMAPI_PASS`` in ``umapi_client/config.py``
+(copied from ``umapi_client/config.py.settings``).  Ensure that
 ``call_client`` is executable and requests are invoked by simply
 calling this script followed by the URL path and parameters of a request. Only
 cached responses will return a response with JSON, otherwise the request will
