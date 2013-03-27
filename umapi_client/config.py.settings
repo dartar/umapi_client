@@ -1,0 +1,8 @@
+"""
+    Stores configuration for umapi_client
+"""
+
+UMAPI_USER = 'user'
+UMAPI_PASS = 'pass'
+URL_ROOT = 'http://metrics.wikimedia.org/'
+COOKIE_FILENAME = 'umapi.cookies'
