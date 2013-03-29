@@ -80,7 +80,7 @@ def main():
         logging.error(__name__ + ' :: No data in JSON.')
 
     logging.debug(__name__ + ' :: Writing to file...')
-    with open(config.JSON_DIR + args.filename + '.csv', 'wb') as f:
+    with open(config.CSV_DIR + args.filename + '.csv', 'wb') as f:
         f.write(content)
 
 

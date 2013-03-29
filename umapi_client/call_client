@@ -103,7 +103,7 @@ def main():
         logging.debug(__name__ + ' :: Writing response to file: {0}'.
             format(filename))
 
-        with open(filename, 'wb') as f:
+        with open(config.JSON_DIR + filename, 'wb') as f:
             f.write(response_str)
     else:
         print response_str
