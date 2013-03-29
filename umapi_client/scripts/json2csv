@@ -55,10 +55,9 @@ def main():
             data = json.loads(f.read())
 
     # missing file or bad json
-    except (IOError, ValueError ) as e:
-        logging.error(__name__ + ' :: ' + e.message)
+    except (IOError, ValueError) as e:
+        logging.error(__name__ + ' :: ' + str(e))
         return
-
 
     content = ''
     if 'header' in data:
