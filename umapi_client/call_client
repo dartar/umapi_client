@@ -56,7 +56,10 @@ def format_filename(args):
     bits = args.url.split('/')
 
     try:
-        suffix = bits[1] + '_' + bits[2] + '_'
+        suffix = 'Q'.join(bits[2].split('?'))
+        suffix = '_'.join(suffix.split('&'))
+        suffix = '-'.join(suffix.split('='))
+        suffix = bits[1] + '_' + suffix + '_'
     except KeyError:
         logging.error(__name__ + ' :: Couldn\'t parse url for filename.')
         suffix = ''
