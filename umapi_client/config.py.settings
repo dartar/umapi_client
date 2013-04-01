@@ -11,3 +11,5 @@ PROJ_DIR = '<home>'
 COOKIE_DIR = PROJ_DIR + 'cookies/'
 JSON_DIR = PROJ_DIR + 'json/'
 CSV_DIR = PROJ_DIR + 'csv/'
+
+MIN_WAIT_REQ = 1
