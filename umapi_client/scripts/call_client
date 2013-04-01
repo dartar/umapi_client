@@ -9,11 +9,13 @@ from umapi_client import config, logging, TIMESTAMP_FORMAT, RESPONSE_FORMAT
 from umapi_client.client import UMAPIClient
 from re import search
 
+from multiprocessing import Process
 from rafutils import enum
 import json
 import argparse
 from datetime import datetime
 from sys import exit
+from time import sleep
 
 __author__ = "ryan faulkner"
 __email__ = 'rfaulkner@wikimedia.org'
@@ -85,14 +87,66 @@ def response_type(response):
 
     # TODO add case to detect if job is running
     if search(r'</html>', response) and search(r'Processing', response):
-        logging.debug(__name__ + ' :: Job initiated.')
+        # logging.debug(__name__ + ' :: Job initiated.')
         return RESPONSE_TYPES.JOB_STARTED
     elif search(r'</html>', response):
-        logging.error(__name__ + ' :: Unknown response from API.')
+        # logging.error(__name__ + ' :: Unknown response from API.')
         return RESPONSE_TYPES.UNKNOWN
     else:
-        logging.debug(__name__ + ' :: Job processed.  Retrieved response.')
+        # logging.debug(__name__ + ' :: Job processed.  Retrieved response.')
         return RESPONSE_TYPES.JSON
+
+
+def request_handler(request, args, timeout, wait_time):
+    """ Parses and tracks UMAPI request. """
+
+    response_str = None
+    host = config.URL_ROOT + str(args.url)
+    wait_count = 0
+
+    # Process loop
+    while 1:
+
+        # Make request
+        try:
+            response = request.get_request(host)
+        except Exception as e:
+            logging.error(__name__ + ' :: Could not get response - {0}.'.
+                format(e.message))
+            return
+
+        rt = response_type(response)
+        if rt == RESPONSE_TYPES.JSON:
+            response_str = str(json.loads(response))
+            break
+        elif rt == RESPONSE_TYPES.JOB_STARTED:
+            logging.debug(__name__ + ' :: Job initiated at {0}.'.format(host))
+        elif rt == RESPONSE_TYPES.JOB_RUNNING:
+            logging.debug(__name__ + ' :: Job running at {0}.'.format(host))
+        elif rt == RESPONSE_TYPES.UNKNOWN:
+            logging.error(__name__ + ' :: Unknown response from API.')
+
+        wait_count += wait_time
+        sleep(wait_time)
+
+        if wait_count > timeout:
+            logging.debug(__name__ + ' :: Exceeded timeout.')
+            return
+
+
+    # Handle response - save? print to stdout?
+
+    if args.save_file:
+        filename = format_filename(args)
+
+        logging.debug(__name__ + ' :: Writing response to file: {0}'.
+        format(filename))
+
+        with open(config.JSON_DIR + filename, 'wb') as f:
+            f.write(response_str)
+
+    if args.print_res:
+        print str(response_str)
 
 
 def main():
@@ -108,33 +162,12 @@ def main():
 
     # TODO Validate the url
 
-    # Make request
-    logging.debug(__name__ + ' :: Login successful. Making request: {0}'.
-        format(config.URL_ROOT + str(args.url)))
+    # Call the request handler
+    p = Process(target=request_handler, args=[umapi_req, args, 10, 1])
+    p.start()
+    p.join()
 
-    try:
-        response = umapi_req.get_request(config.URL_ROOT + str(args.url))
-    except Exception as e:
-        logging.error(__name__ + ' :: Bad response - {0}.'.format(e.message))
-        return
-
-
-    if response_type(response) == RESPONSE_TYPES.JSON:
-        # "JSONify" response output
-        response_str = str(json.loads(response))
-
-        # Handle response
-        if args.save_file:
-            filename = format_filename(args)
-
-            logging.debug(__name__ + ' :: Writing response to file: {0}'.
-                format(filename))
-
-            with open(config.JSON_DIR + filename, 'wb') as f:
-                f.write(response_str)
-
-    if args.print_res:
-        print str(json.loads(response))
+    logging.debug(__name__ + ' :: Shutting down umapi client.')
 
 
 def cli():
