@@ -7,7 +7,9 @@ CLI for UMAPI client.
 
 from umapi_client import config, logging, TIMESTAMP_FORMAT, RESPONSE_FORMAT
 from umapi_client.client import UMAPIClient
+from re import search
 
+from rafutils import enum
 import json
 import argparse
 from datetime import datetime
@@ -17,6 +19,10 @@ __author__ = "ryan faulkner"
 __email__ = 'rfaulkner@wikimedia.org'
 __date__ = "2013-03-27"
 __license__ = "GPL (version 2 or later)"
+
+
+# Enum for response types
+RESPONSE_TYPES = enum('JSON', 'JOB_RUNNING', 'JOB_STARTED', 'UNKNOWN')
 
 
 def parseargs():
@@ -70,6 +76,21 @@ def format_filename(args):
     return filename + RESPONSE_FORMAT
 
 
+def response_type(response):
+    """ Determine the type of response. """
+
+    # TODO add case to detect if job is running
+    if search(r'</html>', response) and search(r'Processing', response):
+        logging.debug(__name__ + ' :: Job initiated.')
+        return RESPONSE_TYPES.JOB_STARTED
+    elif search(r'</html>', response):
+        logging.error(__name__ + ' :: Unknown response from API.')
+        return RESPONSE_TYPES.UNKNOWN
+    else:
+        logging.debug(__name__ + ' :: Job processed.  Retrieved response.')
+        return RESPONSE_TYPES.JSON
+
+
 def main():
 
     # e.g. url = 'cohorts/ryan_test_2/bytes_added'
@@ -81,7 +102,7 @@ def main():
     umapi_req = UMAPIClient(config.UMAPI_USER,
                             config.UMAPI_PASS)
 
-    # Validate the url
+    # TODO Validate the url
 
     # Make request
     logging.debug(__name__ + ' :: Login successful. Making request: {0}'.
@@ -93,20 +114,22 @@ def main():
         logging.error(__name__ + ' :: Bad response - {0}.'.format(e.message))
         return
 
-    # "JSONify" response output
-    response_str = str(json.loads(response))
 
-    # Handle response
-    if args.save_file:
-        filename = format_filename(args)
+    if response_type(response) == RESPONSE_TYPES.JSON:
+        # "JSONify" response output
+        response_str = str(json.loads(response))
 
-        logging.debug(__name__ + ' :: Writing response to file: {0}'.
-            format(filename))
+        # Handle response
+        if args.save_file:
+            filename = format_filename(args)
 
-        with open(config.JSON_DIR + filename, 'wb') as f:
-            f.write(response_str)
-    else:
-        print response_str
+            logging.debug(__name__ + ' :: Writing response to file: {0}'.
+                format(filename))
+
+            with open(config.JSON_DIR + filename, 'wb') as f:
+                f.write(response_str)
+        else:
+            print response_str
 
 
 def cli():
