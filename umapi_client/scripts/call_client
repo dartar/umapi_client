@@ -131,6 +131,9 @@ def request_handler(request, args, timeout, wait_time):
         if wait_count > timeout:
             logging.debug(__name__ + ' :: Exceeded timeout.')
             return
+        else:
+            logging.debug(__name__ + ' :: Time wait = {0}. Timeout = {1}'.
+                format(wait_count, timeout))
 
     # Handle response - save? print to stdout?
 
@@ -161,7 +164,7 @@ def main():
     # TODO Validate the url
 
     # Call the request handler
-    p = Process(target=request_handler, args=[umapi_req, args, 10, 1])
+    p = Process(target=request_handler, args=[umapi_req, args, 2, 1])
     p.start()
     p.join()
 
