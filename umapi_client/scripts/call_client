@@ -56,7 +56,7 @@ def parseargs():
                         '--print_res',
                         action='store_true',
                         help='prints response.')
-    parser.add_argument('-t',
+    parser.add_argument('-i',
                         '--timeout',
                         type=int,
                         default=10,
