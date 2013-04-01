@@ -45,11 +45,15 @@ def parseargs():
     parser.add_argument('-s',
                         '--save_file',
                         action='store_true',
-                        help='store response on file')
+                        help='store response on file.')
     parser.add_argument('-t',
                         '--timestamp',
                         action='store_true',
-                        help='timestamp the filename')
+                        help='timestamp the filename.')
+    parser.add_argument('-p',
+                        '--print_res',
+                        action='store_true',
+                        help='prints response.')
 
     args = parser.parse_args()
     return args
@@ -128,8 +132,9 @@ def main():
 
             with open(config.JSON_DIR + filename, 'wb') as f:
                 f.write(response_str)
-        else:
-            print response_str
+
+    if args.print_res:
+        print str(json.loads(response))
 
 
 def cli():
