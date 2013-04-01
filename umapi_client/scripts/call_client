@@ -56,6 +56,16 @@ def parseargs():
                         '--print_res',
                         action='store_true',
                         help='prints response.')
+    parser.add_argument('-t',
+                        '--timeout',
+                        type=int,
+                        default=10,
+                        help='Total timeout.')
+    parser.add_argument('-w',
+                        '--wait',
+                        type=int,
+                        default=1,
+                        help='Wait between requests.')
 
     args = parser.parse_args()
     return args
@@ -163,8 +173,14 @@ def main():
 
     # TODO Validate the url
 
+    if args.wait < config.MIN_WAIT_REQ:
+        logging.error(__name__ + ' :: Wait time to small. '
+                                  'Must be at least {0}'.format(
+            config.MIN_WAIT_REQ))
+        return
+
     # Call the request handler
-    p = Process(target=request_handler, args=[umapi_req, args, 2, 1])
+    p = Process(target=request_handler, args=[umapi_req, args, args.timeout, args.wait])
     p.start()
     p.join()
 
