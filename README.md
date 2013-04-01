@@ -13,12 +13,12 @@ Set the ``UMAPI_USER`` and ``UMAPI_PASS`` in ``umapi_client/config.py``
 ``call_client`` is executable and requests are invoked by simply
 calling this script followed by the URL path and parameters of a request. Only
 cached responses will return a response with JSON, otherwise the request will
-be queued by the service. ::
+be queued by the service.
 
 
     RFaulkner-WMF:umapi_client rfaulkner$ cd umapi_client/
-    RFaulkner-WMF:umapi_client rfaulkner$ ./call_client "cohorts/ryan_test_2/\
-    bytes_added"
+    RFaulkner-WMF:umapi_client rfaulkner$ ./scripts/call_client "cohorts/\
+    ryan_test_2/bytes_added"
     {
       "cohort": "ryan_test_2",
       "group": "default",
@@ -68,10 +68,10 @@ be queued by the service. ::
       "t": 24
     }
 
-To save the contents to a file [-s] and timestamp the file [-t]::
+To save the contents to a file [-s] and timestamp the file [-t]:
 
-    RFaulkner-WMF:umapi_client rfaulkner$ ./call_client "cohorts/ryan_test_2/\
-    bytes_added" -s -t
+    RFaulkner-WMF:umapi_client rfaulkner$ ./scripts/call_client "cohorts/\
+    ryan_test_2/bytes_added" -s -t
     Mar-29 12:47:33 DEBUG    __main__ :: Attempting to create cookie jar,
         logging in ..
     Mar-29 12:47:34 DEBUG    __main__ :: Login successful. Making request:
@@ -128,3 +128,14 @@ To save the contents to a file [-s] and timestamp the file [-t]::
       "interval_hours": 24,
       "t": 24
     }
+
+To convert the output to csv:
+
+    RFaulkner-WMF:scripts rfaulkner$ ./json2csv umapi_client_ryan_test_2_bytes_added_20130331.json
+    Mar-31 23:57:20 DEBUG    __main__ :: Attempting to read file...
+    Mar-31 23:57:20 DEBUG    __main__ :: Writing to file...
+    RFaulkner-WMF:scripts rfaulkner$ cat ../../csv/umapi_client_ryan_test_2_bytes_added_20130331.json.csv
+    user_id,bytes_added_net,bytes_added_absolute,bytes_added_pos,bytes_added_neg,edit_count
+    13234584,0,0,0,0,0
+    15972203,683,1133,908,-225,5
+    15972135,0,0,0,0,0
