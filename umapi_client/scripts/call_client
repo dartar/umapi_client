@@ -7,7 +7,7 @@ CLI for UMAPI client.
 
 from umapi_client import config, logging, TIMESTAMP_FORMAT, RESPONSE_FORMAT
 from umapi_client.client import UMAPIClient
-from re import search
+from re import search, sub
 
 from multiprocessing import Process
 from rafutils import enum
@@ -129,6 +129,12 @@ def request_handler(request, args, timeout, wait_time):
             response_str = str(json.loads(response))
             break
         elif rt == RESPONSE_TYPES.JOB_STARTED:
+
+            # Filter "refresh" query variable from url if it exists
+            # This prevents jobs from constantly being refreshed
+            host = sub(r'refresh&', r'', host)
+            host = sub(r'&refresh', r'', host)
+
             logging.debug(__name__ + ' :: Job initiated at {0}.'.format(host))
         elif rt == RESPONSE_TYPES.JOB_RUNNING:
             logging.debug(__name__ + ' :: Job running at {0}.'.format(host))
