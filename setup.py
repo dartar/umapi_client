@@ -16,9 +16,11 @@ setup(
     url='http://www.github.com/rfaulkner/umapi_client',
     author="Wikimedia Foundation",
     author_email="e3-team@lists.wikimedia.org",
-    install_requires=[],
     packages=['umapi_client',
 	      ],
+    install_requires=[
+        'rafutils >= 0.1.2-dev',
+        ],
     classifiers=[
         'Development Status :: 1 - Planning',
         'Intended Audience :: Science/Research',
