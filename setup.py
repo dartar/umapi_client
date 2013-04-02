@@ -22,7 +22,7 @@ setup(
         'rafutils >= 0.1.2-dev',
         ],
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU General Public License (GPL)',
         'Programming Language :: Python :: 2.7',
