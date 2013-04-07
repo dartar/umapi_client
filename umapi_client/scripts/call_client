@@ -66,6 +66,16 @@ def parseargs():
                         type=int,
                         default=1,
                         help='Wait between requests.')
+    parser.add_argument('-f',
+                        '--infile',
+                        type=str,
+                        default='in.csv',
+                        help='Input separated value filename.')
+    parser.add_argument('-S',
+                        '--separator',
+                        type=str,
+                        default=',',
+                        help='Input file separator.')
 
     args = parser.parse_args()
     return args
