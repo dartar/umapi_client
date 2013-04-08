@@ -131,7 +131,7 @@ def request_handler(request, args, timeout, wait_time):
             response = request.get_request(host)
         except Exception as e:
             logging.error(__name__ + ' :: Could not get response - {0}.'.
-                format(e.message))
+                          format(e.message))
             return
 
         rt = response_type(response)
@@ -159,7 +159,7 @@ def request_handler(request, args, timeout, wait_time):
             return
         else:
             logging.debug(__name__ + ' :: Time wait = {0}. Timeout = {1}'.
-                format(wait_count, timeout))
+                          format(wait_count, timeout))
 
     # Handle response - save? print to stdout?
 
@@ -167,7 +167,7 @@ def request_handler(request, args, timeout, wait_time):
         filename = format_filename(args)
 
         logging.debug(__name__ + ' :: Writing response to file: {0}'.
-        format(filename))
+                      format(filename))
 
         with open(config.JSON_DIR + filename, 'wb') as f:
             f.write(response_str)
@@ -191,12 +191,13 @@ def main():
 
     if args.wait < config.MIN_WAIT_REQ:
         logging.error(__name__ + ' :: Wait time to small. '
-                                  'Must be at least {0}'.format(
-            config.MIN_WAIT_REQ))
+                                 'Must be at least {0}'.format(
+                      config.MIN_WAIT_REQ))
         return
 
     # Call the request handler
-    p = Process(target=request_handler, args=[umapi_req, args, args.timeout, args.wait])
+    p = Process(target=request_handler,
+                args=[umapi_req, args, args.timeout, args.wait])
     p.start()
     p.join()
 
