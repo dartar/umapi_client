@@ -49,7 +49,11 @@ def parseargs():
     parser.allow_interspersed_args = False
 
     # Global options.
-    parser.add_argument('url')
+    parser.add_argument('-u',
+                        '--uri',
+                        type=str,
+                        default='test/threshold',
+                        help='URI of request.')
     parser.add_argument('-s',
                         '--save_file',
                         action='store_true',
@@ -75,7 +79,6 @@ def parseargs():
     parser.add_argument('-f',
                         '--infile',
                         type=str,
-                        default='in.csv',
                         help='Input separated value filename.')
     parser.add_argument('-S',
                         '--separator',
@@ -243,16 +246,34 @@ def main():
         return
 
     # Call the request handler
-    p = Process(target=request_handler,
-                args=[umapi_req,
-                      args.url,
-                      args.timeout,
-                      args.wait,
-                      args.save_file,
-                      args.timestamp,
-                      args.print_res])
-    p.start()
-    p.join()
+    #
+    # 1. URLs provided from a csv
+    # 2. URL from CL
+    #
+
+    proc_args = [umapi_req,
+                 args.uri,
+                 args.timeout,
+                 args.wait,
+                 args.save_file,
+                 args.timestamp,
+                 args.print_res]
+
+    if args.infile:
+        with open(config.IN_DIR + args.infile) as f:
+            urls = f.read().strip().split(args.separator)
+        for url in urls:
+            logging.debug(__name__ + ' :: Processing: {0}.'.format(url))
+            proc_args[1] = url
+            p = Process(target=request_handler, args=proc_args)
+            p.start()
+            p.join()
+    else:
+        logging.debug(__name__ + ' :: Processing: {0}.'.format(args.url))
+        proc_args[1] = args.uri
+        p = Process(target=request_handler, args=proc_args)
+        p.start()
+        p.join()
 
     logging.debug(__name__ + ' :: Shutting down umapi client.')
 
