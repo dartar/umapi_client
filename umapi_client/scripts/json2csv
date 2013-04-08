@@ -24,7 +24,8 @@ def parseargs():
     """
 
     parser = argparse.ArgumentParser(
-        description="Takes a Wikimedia user metrics API JSON file and converts to xsv.",
+        description="Takes a Wikimedia user metrics API JSON file and "
+                    "converts to xsv.",
         epilog="",
         conflict_handler="resolve",
         usage="umapi_client [url]"
@@ -33,14 +34,15 @@ def parseargs():
     parser.allow_interspersed_args = False
 
     # Global options.
-    parser.add_argument('filename')
+    parser.add_argument('filenames', nargs='+')
     parser.add_argument('-s',
-        '--separator',
-        type=str,
-        default=',',
-        help='data separator')
+                        '--separator',
+                        type=str,
+                        default=',',
+                        help='data separator')
 
     args = parser.parse_args()
+    print args
     return args
 
 
@@ -49,38 +51,43 @@ def main():
     args = parseargs()
 
     # Read file
-    logging.debug(__name__ + ' :: Attempting to read file...')
-    try:
-        with open(config.JSON_DIR + args.filename, 'rb') as f:
-            data = json.loads(f.read())
+    logging.debug(__name__ + ' :: Attempting to read file(s)...')
 
-    # missing file or bad json
-    except (IOError, ValueError) as e:
-        logging.error(__name__ + ' :: ' + str(e))
-        return
+    for filename in args.filenames:
 
-    content = ''
-    if 'header' in data:
-        content += args.separator.join(data['header']) + '\n'
-    else:
-        logging.error(__name__ + ' :: No header in JSON.')
+        try:
+            with open(config.JSON_DIR + filename, 'rb') as f:
+                data = json.loads(f.read())
 
-    if 'data' in data:
-        for user_key in data['data']:
+        # missing file or bad json
+        except (IOError, ValueError) as e:
+            logging.error(__name__ + ' :: ' + str(e))
+            continue
 
-            # format the data to string
-            # e.g. [1, 2.0, False]
-            row = str(data['data'][user_key])[1:-1].split(',')
-            row = [e.strip() for e in row]
+        content = ''
+        if 'header' in data:
+            content += args.separator.join(data['header']) + '\n'
+        else:
+            logging.error(__name__ + ' :: No header in JSON.')
 
-            elems = args.separator.join(row)
-            content += str(user_key) + args.separator + elems + '\n'
-    else:
-        logging.error(__name__ + ' :: No data in JSON.')
+        if 'data' in data:
+            for user_key in data['data']:
 
-    logging.debug(__name__ + ' :: Writing to file...')
-    with open(config.CSV_DIR + args.filename + '.csv', 'wb') as f:
-        f.write(content)
+                # format the data to string
+                # e.g. [1, 2.0, False]
+                row = str(data['data'][user_key])[1:-1].split(',')
+                row = [e.strip() for e in row]
+
+                elems = args.separator.join(row)
+                content += str(user_key) + args.separator + elems + '\n'
+        else:
+            logging.error(__name__ + ' :: No data in JSON.')
+
+        logging.debug(__name__ + ' :: Writing to file...')
+        with open(config.CSV_DIR + filename + '.csv', 'wb') as f:
+            f.write(content)
+
+    logging.debug(__name__ + ' :: Shutting down json2csv...')
 
 
 def cli():
