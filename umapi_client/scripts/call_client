@@ -263,14 +263,16 @@ def main():
         with open(config.IN_DIR + args.infile) as f:
             urls = f.read().strip().split(args.separator)
         for url in urls:
+            url = unicode(url).strip()
             logging.debug(__name__ + ' :: Processing: {0}.'.format(url))
             proc_args[1] = url
             p = Process(target=request_handler, args=proc_args)
             p.start()
             p.join()
     else:
-        logging.debug(__name__ + ' :: Processing: {0}.'.format(args.url))
-        proc_args[1] = args.uri
+        url = unicode(args.uri).strip()
+        logging.debug(__name__ + ' :: Processing: {0}.'.format(url))
+        proc_args[1] = url
         p = Process(target=request_handler, args=proc_args)
         p.start()
         p.join()
