@@ -2,14 +2,24 @@
     Stores configuration for umapi_client
 """
 
+# API creds
 UMAPI_USER = 'user'
 UMAPI_PASS = 'pass'
 URL_ROOT = 'http://metrics.wikimedia.org/'
 COOKIE_FILENAME = 'umapi.cookies'
 
 PROJ_DIR = '<home>'
+
+# Cookie from API here
 COOKIE_DIR = PROJ_DIR + 'cookies/'
+
+# Stores input files
+IN_DIR = PROJ_DIR + 'input/'
+
+# Stores JSON output
 JSON_DIR = PROJ_DIR + 'json/'
+
+# Stores JSON output
 CSV_DIR = PROJ_DIR + 'csv/'
 
 MIN_WAIT_REQ = 1
