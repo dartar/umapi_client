@@ -42,7 +42,6 @@ def parseargs():
                         help='data separator')
 
     args = parser.parse_args()
-    print args
     return args
 
 
@@ -56,7 +55,7 @@ def main():
     for filename in args.filenames:
 
         try:
-            with open(config.JSON_DIR + filename, 'rb') as f:
+            with open(filename, 'rb') as f:
                 data = json.loads(f.read())
 
         # missing file or bad json
@@ -83,9 +82,17 @@ def main():
         else:
             logging.error(__name__ + ' :: No data in JSON.')
 
+
+        filename_parsed = filename.split(r'/')[-1]
         logging.debug(__name__ + ' :: Writing to file...')
-        with open(config.CSV_DIR + filename + '.csv', 'wb') as f:
-            f.write(content)
+
+        try:
+            with open(config.CSV_DIR + filename_parsed + '.csv', 'wb') as f:
+                f.write(content)
+        except (IOError, ValueError) as e:
+            logging.error(__name__ + ' :: Could not write result for '
+                                     '{0} - '.format(filename_parsed) + str(e))
+            continue
 
     logging.debug(__name__ + ' :: Shutting down json2csv...')
 
