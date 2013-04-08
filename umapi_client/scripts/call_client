@@ -26,6 +26,12 @@ __license__ = "GPL (version 2 or later)"
 # Enum for response types
 RESPONSE_TYPES = enum('JSON', 'JOB_RUNNING', 'JOB_STARTED', 'UNKNOWN')
 
+# Default total timeout (seconds)
+DEFAULT_TIMEOUT = 10
+
+# Default wait time (seconds)
+DEFAULT_WAIT = 1
+
 
 def parseargs():
     """
@@ -81,11 +87,11 @@ def parseargs():
     return args
 
 
-def format_filename(args):
+def format_filename(url, timestamp=False):
     """ Formats the file name optionally emitted byt the client """
 
     # Parse url path
-    bits = args.url.split('/')
+    bits = url.split('/')
 
     try:
         suffix = 'Q'.join(bits[2].split('?'))
@@ -97,7 +103,7 @@ def format_filename(args):
         suffix = ''
 
     filename = 'umapi_client_' + suffix
-    if args.timestamp:
+    if timestamp:
         filename += datetime.now().strftime(TIMESTAMP_FORMAT)[:8]
     return filename + RESPONSE_FORMAT
 
@@ -116,12 +122,46 @@ def response_type(response):
         return RESPONSE_TYPES.JSON
 
 
-def request_handler(request, args, timeout, wait_time):
-    """ Parses and tracks UMAPI request. """
+def request_handler(request,
+                    url,
+                    timeout=DEFAULT_TIMEOUT,
+                    wait_time=DEFAULT_WAIT,
+                    save_file=False,
+                    timestamp=False,
+                    print_res=False):
+    """
+    Parses and tracks UMAPI request.
+
+    Parameters
+    ~~~~~~~~~~
+
+        request : UMAPIClient (umapi_client.client)
+            Client object to handle communication with service.
+
+        url : str
+            URL path and params of request.
+
+        timeout : int
+            Time (seconds) to wait for the request response.
+
+        wait_time: int
+            Time (seconds) to iteratively poll API.
+
+        save_file : bool
+            Save the response as a file?
+
+        timestamp : bool
+            Add a timestamp to a saved file? (save_file must be true)
+
+        print_res : bool
+            Print response?
+    """
 
     response_str = None
-    host = config.URL_ROOT + str(args.url)
+    host = config.URL_ROOT + '_'.join(unicode(url).split())
     wait_count = 0
+
+    # TODO Validate the url
 
     # Process loop
     while 1:
@@ -163,8 +203,8 @@ def request_handler(request, args, timeout, wait_time):
 
     # Handle response - save? print to stdout?
 
-    if args.save_file:
-        filename = format_filename(args)
+    if save_file:
+        filename = format_filename(url, timestamp)
 
         logging.debug(__name__ + ' :: Writing response to file: {0}'.
                       format(filename))
@@ -172,11 +212,20 @@ def request_handler(request, args, timeout, wait_time):
         with open(config.JSON_DIR + filename, 'wb') as f:
             f.write(response_str)
 
-    if args.print_res:
+    if print_res:
         print str(response_str)
 
 
 def main():
+    """
+    Main.
+
+    1. Parseargs
+    2. Initialize request object
+    3. Validation
+    4. Call request handler.
+
+    """
 
     # e.g. url = 'cohorts/ryan_test_2/bytes_added'
     args = parseargs()
@@ -187,8 +236,6 @@ def main():
     umapi_req = UMAPIClient(config.UMAPI_USER,
                             config.UMAPI_PASS)
 
-    # TODO Validate the url
-
     if args.wait < config.MIN_WAIT_REQ:
         logging.error(__name__ + ' :: Wait time to small. '
                                  'Must be at least {0}'.format(
@@ -197,7 +244,13 @@ def main():
 
     # Call the request handler
     p = Process(target=request_handler,
-                args=[umapi_req, args, args.timeout, args.wait])
+                args=[umapi_req,
+                      args.url,
+                      args.timeout,
+                      args.wait,
+                      args.save_file,
+                      args.timestamp,
+                      args.print_res])
     p.start()
     p.join()
 
