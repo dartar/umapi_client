@@ -65,12 +65,12 @@ def parseargs():
     parser.add_argument('-i',
                         '--timeout',
                         type=int,
-                        default=10,
+                        default=DEFAULT_TIMEOUT,
                         help='Total timeout.')
     parser.add_argument('-w',
                         '--wait',
                         type=int,
-                        default=1,
+                        default=DEFAULT_WAIT,
                         help='Wait between requests.')
     parser.add_argument('-f',
                         '--infile',
