@@ -23,3 +23,71 @@ JSON_DIR = PROJ_DIR + 'json/'
 CSV_DIR = PROJ_DIR + 'csv/'
 
 MIN_WAIT_REQ = 1
+
+
+# MediaWiki Database connection settings
+# ======================================
+
+connections = {
+    's1': {
+        'user': 'yy',
+        'host': '127.0.0.1',
+        # 'db': 'prod',
+        'passwd': 'xx',
+        'port': 3307},
+    's2': {
+        'user': 'yy',
+        'host': '127.0.0.1',
+        # 'db': 'prod',
+        'passwd': 'xx',
+        'port': 3308},
+    's3': {
+        'user': 'yy',
+        'host': '127.0.0.1',
+        # 'db': 'prod',
+        'passwd': 'xx',
+        'port': 3309},
+    's4': {
+        'user': 'yy',
+        'host': '127.0.0.1',
+        # 'db': 'prod',
+        'passwd': 'xx',
+        'port': 3310},
+    's5': {
+        'user': 'yy',
+        'host': '127.0.0.1',
+        # 'db': '',
+        'passwd': 'xx',
+        'port': 3311},
+    's7': {
+        'user': 'yy',
+        'host': '127.0.0.1',
+        # 'db': '',
+        'passwd': 'xx',
+        'port': 3313},
+    }
+
+
+from os.path import exists
+from urllib2 import urlopen
+import json
+
+
+def get_project_host_map(usecache=True):
+    cache_name = 'project_host_map.json'
+    if not exists(cache_name) or not usecache:
+        cluster_url_fmt = 'http://noc.wikimedia.org/conf/s%d.dblist'
+        host_fmt = 's%d'
+        project_host_map = {}
+        for i in range(1,8):
+            host = host_fmt % i
+            url = cluster_url_fmt % i
+            projects = urlopen(url).read().splitlines()
+            for project in projects:
+                project_host_map[project] = host
+        json.dump(project_host_map, open(cache_name, 'w'))
+    else:
+        project_host_map = json.load(open(cache_name))
+    return project_host_map
+
+PROJECT_DB_MAP = get_project_host_map()

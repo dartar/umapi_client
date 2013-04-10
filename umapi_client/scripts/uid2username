@@ -1,0 +1,159 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+Simple script to convert MediaWiki user table IDs to names.
+"""
+
+from umapi_client import config, logging
+from MySQLdb import escape_string, connect, ProgrammingError, OperationalError
+
+import json
+from re import sub
+import argparse
+from sys import exit
+
+
+__author__ = "ryan faulkner"
+__email__ = 'rfaulkner@wikimedia.org'
+__date__ = "2013-04-09"
+__license__ = "GPL (version 2 or later)"
+
+
+# Query for USER table to extract user name for user ID
+QUERY =\
+"""
+    SELECT user_name
+    FROM <project>.user
+    WHERE user_id = %s
+"""
+
+
+def parseargs():
+    """
+        Parse command line arguments. Returns *args*, the list of arguments
+        left over after processing.
+    """
+
+    parser = argparse.ArgumentParser(
+        description="Requests a url from the Wimedia user metrics API.",
+        epilog="",
+        conflict_handler="resolve",
+        usage="umapi_client [url]"
+    )
+
+    parser.allow_interspersed_args = False
+
+    # Global options.
+    parser.add_argument('-u',
+                        '--uid',
+                        type=str,
+                        default='0',
+                        help='UID of Wikipedia user.')
+    parser.add_argument('-p',
+                        '--project',
+                        type=str,
+                        default='enwiki',
+                        help='URI of request.')
+    parser.add_argument('-s',
+                        '--save_file',
+                        action='store_true',
+                        help='store response on file.')
+    parser.add_argument('-f',
+                        '--infile',
+                        type=str,
+                        help='Input separated value filename.')
+    parser.add_argument('-S',
+                        '--separator',
+                        type=str,
+                        default=',',
+                        help='Input file separator.')
+    parser.add_argument('-o',
+                        '--uname_out',
+                        action='store_true',
+                        help='prints response.')
+
+    args = parser.parse_args()
+    return args
+
+
+def get_uname(uid, project, cur):
+    """
+    Given a project, uid, and a cursor generate a username
+    """
+    query_inst = sub(r'<project>', project, QUERY)
+    try:
+        cur.execute(query_inst, int(uid))
+    except (OperationalError, ProgrammingError) as e:
+        logging.error(__name__ + ' :: Could not get username '
+                                 'from MySQL for {0}: {1}'.format(str(uid),
+                                                                  str(e)))
+    return cur.fetchone()[0]
+
+
+def main():
+    """
+    Main.
+
+
+    """
+
+    logging.debug(__name__ + ' :: Setting up.')
+
+    # e.g. url = 'cohorts/ryan_test_2/bytes_added'
+    args = parseargs()
+    mysql_kwargs = config.connections[config.PROJECT_DB_MAP[args.project]]
+    uname_dict = dict()
+
+    conn = None
+    cur = None
+
+    try:
+
+        conn = connect(**mysql_kwargs)
+        cur = conn.cursor()
+
+        # Escape project and embed in query
+        project = escape_string(''.join(args.project.strip().split()))
+
+        if args.infile:
+            with open(config.IN_DIR + args.infile) as f:
+                uid_list = f.read().strip().split(args.separator)
+
+                for uid in uid_list:
+                    logging.debug(__name__ + ' :: Processing: {0}.'.
+                                  format(args.uid))
+
+                    uname_dict[args.uid] = get_uname(uid, project, cur)
+
+        else:
+            logging.debug(__name__ + ' :: Processing: {0}.'.
+                          format(str(args.uid)))
+            uname_dict[args.uid] = get_uname(args.uid, project, cur)
+
+        if args.save_file:
+            filename = config.CSV_DIR + 'uid2uname.txt'
+            logging.debug(__name__ + ' :: Writing response to file: {0}'.
+                          format(filename))
+
+            with open(config.CSV_DIR + 'uid2uname.txt', 'wb') as f:
+                f.write(json.dumps(uname_dict))
+
+        if args.uname_out:
+            print str(json.dumps(uname_dict))
+
+    finally:
+        if conn:
+            del conn
+        if cur:
+            del cur
+
+    logging.debug(__name__ + ' :: Shutting down.')
+
+
+def cli():
+    exit(main())
+
+
+if __name__ == '__main__':
+    cli()

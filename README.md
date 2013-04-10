@@ -5,8 +5,8 @@ Client wrapper for Wikipedia User Metrics API.
 
 See https://github.com/wikimedia/user_metrics for UMAPI implementation.
 
-Usage
------
+Getting UMAPI Responses with call_client
+----------------------------------------
 
 Set the ``UMAPI_USER`` and ``UMAPI_PASS`` in ``umapi_client/config.py``
 (copied from ``umapi_client/config.py.settings``).  Ensure that
@@ -129,6 +129,10 @@ To save the contents to a file [-s] and timestamp the file [-t]:
       "t": 24
     }
 
+
+Converting Output to CSV
+------------------------
+
 To convert the output to csv:
 
     RFaulkner-WMF:scripts rfaulkner$ ./json2csv umapi_client_ryan_test_2_bytes_added_20130331.json
@@ -139,3 +143,45 @@ To convert the output to csv:
     13234584,0,0,0,0,0
     15972203,683,1133,908,-225,5
     15972135,0,0,0,0,0
+
+Now, it is more convenient to be able to setup a list of jobs to run.  You could create a csv that looks
+something like the following:
+
+    cohorts/107~108~109~110~114~115~117/bytes_added?start=20120201&end=20120301&group=input&project=arwiki,
+    cohorts/107~108~109~110~114~115~117/bytes_added?start=20120301&end=20120401&group=input&project=arwiki,
+    cohorts/107~108~109~110~114~115~117/bytes_added?start=20120401&end=20120501&group=input&project=arwiki,
+    ...
+
+If you now call call_client with the -f flag followed by the in file name (the input file must exist in
+<PROJECT_HOME>/input/) and then call json2csv over the resulting output you get the
+
+    RFaulkner-WMF:scripts rfaulkner$ ./call_client -f in.txt -s -t
+    RFaulkner-WMF:scripts rfaulkner$ ./json2csv ../../json/*
+    RFaulkner-WMF:scripts rfaulkner$ head -n 10 ../../csv/umapi_client_107~108~109~110~114~115~117_bytes_addedQ\
+        start-20120501_end-20120601_group-input_project-arwiki_20130407.json.csv
+
+    user_id,bytes_added_net,bytes_added_absolute,bytes_added_pos,bytes_added_neg,edit_count
+    469199,-4231,67235,31502,-35733,121
+    471261,9484,9484,9484,0,1
+    467685,0,0,0,0,0
+    469196,0,0,0,0,0
+    477445,54919,55561,55240,-321,42
+    469224,0,0,0,0,0
+    469189,0,0,0,0,0
+    477440,4,4,4,0,1
+    466000,18762,18872,18817,-55,6
+
+
+User ID to Username Conversion
+------------------------------
+
+Here the script ``uid2username`` can be very helpful:
+
+    RFaulkner-WMF:scripts rfaulkner$ ./uid2username -u 13234584 -o
+    Apr-09 17:54:11 DEBUG    __main__ :: Setting up.
+    Apr-09 17:54:12 DEBUG    __main__ :: Processing: 13234584.
+    {"13234584": "Renklauf"}
+    Apr-09 17:54:12 DEBUG    __main__ :: Shutting down.
+
+The -u flag specifies the user ID to read, -o specifies print to stdout.  Similar to ``json2csv`` -f can
+be used to specify a comma separated value file of user names and -s can be used to save the json output.
