@@ -6,7 +6,7 @@ Simple script to convert MediaWiki user table IDs to names.
 """
 
 from umapi_client import config, logging
-from MySQLdb import escape_string, connect
+from MySQLdb import escape_string, connect, ProgrammingError, OperationalError
 
 import json
 from re import sub
@@ -77,14 +77,24 @@ def parseargs():
     return args
 
 
+def get_uname(uid, project, cur):
+    """
+    Given a project, uid, and a cursor generate a username
+    """
+    query_inst = sub(r'<project>', project, QUERY)
+    try:
+        cur.execute(query_inst, int(uid))
+    except (OperationalError, ProgrammingError) as e:
+        logging.error(__name__ + ' :: Could not get username '
+                                 'from MySQL for {0}: {1}'.format(str(uid),
+                                                                  str(e)))
+    return cur.fetchone()[0]
+
+
 def main():
     """
     Main.
 
-    1. Parseargs
-    2. Initialize request object
-    3. Validation
-    4. Call request handler.
 
     """
 
@@ -105,7 +115,6 @@ def main():
 
         # Escape project and embed in query
         project = escape_string(''.join(args.project.strip().split()))
-        query_inst = sub(r'<project>', project, QUERY)
 
         if args.infile:
             with open(config.IN_DIR + args.infile) as f:
@@ -115,17 +124,12 @@ def main():
                     logging.debug(__name__ + ' :: Processing: {0}.'.
                                   format(args.uid))
 
-                    cur.execute(query_inst, int(uid))
-                    uname = cur.fetchone()[0]
-                    uname_dict[args.uid] = uname
+                    uname_dict[args.uid] = get_uname(uid, project, cur)
 
         else:
             logging.debug(__name__ + ' :: Processing: {0}.'.
                           format(str(args.uid)))
-
-            cur.execute(query_inst, int(args.uid))
-            uname = cur.fetchone()[0]
-            uname_dict[args.uid] = uname
+            uname_dict[args.uid] = get_uname(args.uid, project, cur)
 
         if args.save_file:
             filename = config.CSV_DIR + 'uid2uname.txt'
