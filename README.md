@@ -5,8 +5,8 @@ Client wrapper for Wikipedia User Metrics API.
 
 See https://github.com/wikimedia/user_metrics for UMAPI implementation.
 
-Usage
------
+Getting UMAPI Responses with call_client
+----------------------------------------
 
 Set the ``UMAPI_USER`` and ``UMAPI_PASS`` in ``umapi_client/config.py``
 (copied from ``umapi_client/config.py.settings``).  Ensure that
@@ -129,6 +129,10 @@ To save the contents to a file [-s] and timestamp the file [-t]:
       "t": 24
     }
 
+
+Converting Output to CSV
+------------------------
+
 To convert the output to csv:
 
     RFaulkner-WMF:scripts rfaulkner$ ./json2csv umapi_client_ryan_test_2_bytes_added_20130331.json
@@ -166,3 +170,18 @@ If you now call call_client with the -f flag followed by the in file name (the i
     469189,0,0,0,0,0
     477440,4,4,4,0,1
     466000,18762,18872,18817,-55,6
+
+
+User ID to Username Conversion
+------------------------------
+
+Here the script ``uid2username`` can be very helpful:
+
+    RFaulkner-WMF:scripts rfaulkner$ ./uid2username -u 13234584 -o
+    Apr-09 17:54:11 DEBUG    __main__ :: Setting up.
+    Apr-09 17:54:12 DEBUG    __main__ :: Processing: 13234584.
+    {"13234584": "Renklauf"}
+    Apr-09 17:54:12 DEBUG    __main__ :: Shutting down.
+
+The -u flag specifies the user ID to read, -o specifies print to stdout.  Similar to ``json2csv`` -f can
+be used to specify a comma separated value file of user names and -s can be used to save the json output.
